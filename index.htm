@@ -1,0 +1,212 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <meta charset="utf-8" />
+    <style>
+ table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 15px;
+}
+
+/* Style the buttons that are used to open and close the accordion panel */
+button.accordion {
+    background-color: #eee;
+    color: #444;
+    cursor: pointer;
+    padding: 18px;
+    width: 100%;
+    text-align: left;
+    border: none;
+    outline: none;
+    transition: 0.4s;
+}
+
+button.accordion1 {
+    background-color: #ddd;
+    color: #555;
+    cursor: pointer;
+    padding: 22px;
+    width: 100%;
+    text-align: left;
+    border: none;
+    outline: none;
+    transition: 0.4s;
+}
+
+/* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+button.accordion.active, button.accordion:hover {
+    background-color: #ddd;
+}
+
+button.accordion1.active, button.accordion1:hover {
+    background-color: #ddd;
+}
+
+/* Style the accordion panel. Note: hidden by default */
+div.panel {
+    padding: 0 18px;
+    background-color: white;
+    display: none;
+}
+
+/* Style the accordion panel. Note: hidden by default */
+div.panel1 {
+    padding: 0 18px;
+    background-color: white;
+    display: none;
+}
+
+    </style>
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    
+    <!--http://pastebin.com/raw/iequLrhr-->
+    <script>
+        var groupesUrl = [];
+
+        function noNull(a)
+        {
+            if (a === undefined) {
+                return '';
+            }
+            else { return a; }
+        }
+
+        $(document).ready(function () {
+            // Lorsque le document est prêt, ajouter un élément script à télécharger
+            var script = document.createElement('script');
+            script.src = "http://pastebin.com/raw/iequLrhr"; // si locale: "Programme.js";
+            script.onload = function () {
+                // Une fois le script téléchargé, c'est en fait du json!
+                var data = JSON.parse(a);
+                // Inscrire le nom de la compétition
+                var contenu = '<div>' + data.Nom + '</div>';
+                contenu += '<p></p>';
+                /* Boucler sur chacun des groupes de la compétition*/
+                var  i = 0;
+                $.each(data.Groupes, function (index, item) {
+                    contenu += '<button id="g' + i.toString() + '" class="accordion">' + item.Groupe + '</button>';
+                    contenu += '<div id="p' + i.toString() + '" class="panel">';
+                    // Ne pas mettre de contenu pour l'instant, le contenu est rechargé à chaque clique
+                    // sur la bouton
+                    contenu += '<p>Résultats à venir</p>';
+                    contenu += "</div>";
+                    // Conserver l'URL de téléchargement du contenu du groupe.
+                    groupesUrl.push(item.src);
+                    i += 1;
+                });
+               
+                // Assigner à la balise le contenu dynamique du HTML
+                var oldInput = document.getElementById("resultat");
+                oldInput.innerHTML = contenu;
+
+                // Sur la classe accordéon, assigner l'évènement de clique
+                var acc = document.getElementsByClassName("accordion");
+                var i;
+
+                for (i = 0; i < acc.length; i++) {
+                    acc[i].onclick = function () {
+                        /* Toggle between adding and removing the "active" class,
+                        to highlight the button that controls the panel */
+                        this.classList.toggle("active");
+
+                        /* Toggle between hiding and showing the active panel */
+                        var panel = this.nextElementSibling;
+                        if (panel.style.display === "block") {
+                            panel.style.display = "none";
+                        } else {
+                            // Quand le bloc est affiché, on télécharge l'info du bloc
+                            // le but est de permettre d'avoir toujours l'info à jour
+                            panel.style.display = "block";
+                            var no = this.id.substr(1);
+                            var idParent = this.id;
+                            var url = groupesUrl[no];
+                            // télécharger les informations du groupes
+                            var script2 = document.createElement('script');
+                            script2.src = url;
+                            script2.onload = function () {
+                                var data = JSON.parse(a);
+                                var ii = 0;
+                                var contenu1 = '<p></p>';
+                                $.each(data, function (index, item) {
+                                    // Pour chacun des groupes de compétition
+                                    contenu1 += '<button id="' + idParent + '_v' + ii.toString() + '" class="accordion1">' + item.vague + '&nbsp;' + item.etape + '&nbsp;' + item.distance + '</button>';
+                                    contenu1 += '<div id="' + idParent + '_v' + ii.toString() + '" class="panel1">';
+                                    var table = '<table>';
+                                    table += '<tr><th>Casque</th><th>Patnieur</th><th>Club</th><th>Rang</th><th>Temps</th><th>Points</th><th>Commentaire</th><th>Date</th></tr>';
+                                    $.each(item.Patineurs, function (index, item1) {
+                                        // Ajouter chacun des patineurs avec son résultat
+                                        table += '<tr><td>' + item1.Casque + '</td><td>' + item1.Patineurs + '</td><td>' + item1.Club + '</td><td>' + item1.Rang + '</td><td>' + item1.Temps + '</td><td>' +  noNull(item1.Point) + '</td><td>' + item1.Commentaire + '</td><td>' + item1.Date + '</td></tr>';
+                                    });
+                                    table += '</table>';
+                                    contenu1 += table;
+                                    contenu1 += "</div>";           
+                                    ii += 1;
+                                });
+                           
+                                // Éléments où mettre les informations dans le document
+                                var oldInput = document.getElementById("p" + no.toString());
+                                // Ajout du HTML dynamique à l'emplacement
+                                oldInput.innerHTML = contenu1;
+
+                                var acc1 = document.getElementsByClassName("accordion1");
+                                var iii;
+
+                                // Assignation de l'évènement clique sur le contenu afin de l'afficher
+                                for (iii = 0; iii < acc1.length; iii++) {
+                                    acc1[iii].onclick = function () {
+                                        /* Toggle between adding and removing the "active" class,
+                                        to highlight the button that controls the panel */
+                                        this.classList.toggle("active");
+
+                                        /* Toggle between hiding and showing the active panel */
+                                        var panel = this.nextElementSibling;
+                                        if (panel.style.display === "block") {
+                                            panel.style.display = "none";
+                                        } else {
+                                            panel.style.display = "block";
+                                        }
+                                    }
+                                }
+
+                                // supprimer le bloc de javascript (Groupe) il n'est plus requis
+                                document.head.removeChild(script2);
+                            }
+
+                            // Ajouter le bloc de javascript (Groupe) afin de forcer son téléchargement
+                            document.head.appendChild(script2);
+                            
+                        }
+                    }
+                }
+               
+                // Supprimer le bloc de javascript (Programme)
+                document.head.removeChild(script);
+            };
+            // Ajouter le bloc de javascript (Groupe) afin de forcer son téléchargement
+            document.head.appendChild(script);
+        });
+
+        $(function () {
+            $("#accordion").accordion();
+        });
+
+        $(function () {
+            $("#accordion1").accordion();
+        });
+       
+    </script>
+</head>
+<body>
+    <div>Résultat de compétition</div>
+
+    <!-- C'est ici que s'affiche le contenu dynamique-->
+    <div id="resultat"></div>
+    
+</body>
+</html>
